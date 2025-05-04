@@ -1,0 +1,67 @@
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>七千單字小測驗（含 JSON 載入）</title>
+  <style>
+    body { font-family: sans-serif; padding: 2em; max-width: 600px; margin: auto; }
+    .question { font-size: 1.5em; margin-bottom: 1em; }
+    .input-box { font-size: 1.2em; padding: 0.5em; width: 100%; margin-bottom: 1em; }
+    button { padding: 0.5em 1em; font-size: 1em; }
+    .result { margin-top: 1em; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>七千單字小測驗</h1>
+  <div class="question" id="question">載入中...</div>
+  <input type="text" class="input-box" id="answer" placeholder="請輸入英文" autofocus>
+  <button onclick="submitAnswer()">送出</button>
+  <div class="result" id="result"></div>
+
+  <script>
+    let words = [];
+    let currentWord = {};
+
+    async function loadWords() {
+      try {
+        const response = await fetch('7000.json');
+        const data = await response.json();
+        words = data.map(item => ({ en: item.en, zh: item.zh_tw }));
+        nextQuestion();
+      } catch (err) {
+        document.getElementById("question").textContent = "❌ 無法載入單字資料。請確認 7000.json 檔案存在。";
+      }
+    }
+
+    function getRandomWord() {
+      return words[Math.floor(Math.random() * words.length)];
+    }
+
+    function nextQuestion() {
+      if (!words.length) return;
+      currentWord = getRandomWord();
+      document.getElementById("question").textContent = `「${currentWord.zh}」是什麼英文單字？`;
+      document.getElementById("answer").value = "";
+      document.getElementById("result").textContent = "";
+      document.getElementById("answer").focus();
+    }
+
+    function submitAnswer() {
+      const userInput = document.getElementById("answer").value.trim().toLowerCase();
+      const resultBox = document.getElementById("result");
+      if (userInput === currentWord.en.toLowerCase()) {
+        resultBox.textContent = "✅ 正確！";
+        resultBox.style.color = "green";
+      } else {
+        resultBox.textContent = `❌ 錯誤，正解是：${currentWord.en}`;
+        resultBox.style.color = "red";
+      }
+      setTimeout(nextQuestion, 1500);
+    }
+
+    window.onload = loadWords;
+  </script>
+</body>
+</html>
